@@ -30,3 +30,4 @@ Los documentos de planificación docente no forman parte de este repositorio. El
 
 El proyecto es completamente estático. En GitHub, abre **Settings → Pages**, selecciona **Deploy from a branch**, usa la rama `main` y la carpeta raíz `/`.
 
+Última revisión integral: 18 de noviembre de 2026.
