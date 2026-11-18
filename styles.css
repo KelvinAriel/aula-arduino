@@ -9,3 +9,33 @@
 @media(max-width:480px){main{padding:19px 15px 30px}.topbar{padding:0 13px}.breadcrumb{display:none}.searchbar{width:auto;max-width:none;flex:1}.hero{grid-template-columns:1fr;min-height:0}.hero-text{padding:26px 24px 24px}.hero h1{font-size:36px;max-width:240px}.hero p{max-width:240px}.hero-art{position:absolute;width:44%;height:210px;right:-18px;top:49px;opacity:.48;pointer-events:none}.hero-art img{width:255%;max-width:none;margin:0;transform:rotate(-10deg);filter:saturate(.9)}.hero-art:after{display:none}.art-caption{display:none}.hero-text{z-index:2}.hero-label{font-size:7px}.hero-secondary{display:inline-flex;margin-left:9px;margin-top:0;font-size:9px}.hero .btn{font-size:9px}.welcome-line{font-size:10px}.course-label{display:none}.stat{padding:14px 12px}.stat-number{font-size:18px}.stat-icon{width:29px;height:29px;border-radius:8px}.stat-name{font-size:8px}.section-heading{gap:9px}.section-heading h2{font-size:15px}.section-heading p{font-size:9px}.text-link{font-size:9px}.module-grid{grid-template-columns:1fr;gap:13px}.module-card{padding:19px 20px 0}.module-card h3{font-size:15px}.module-card p{font-size:11px}.card-top{margin-bottom:14px}.card-foot{padding:13px 0}.card-week,.card-tag,.card-detail,.card-open{font-size:9px}.continue-card{flex-wrap:wrap}.continue-card>.module-icon{width:39px;height:39px;border-radius:10px}.continue-card .continue-main{width:calc(100% - 60px)}.continue-card>.btn{margin-left:52px}.home-lower{gap:13px}.promo{padding:18px}.filter-pills{gap:6px}.filter-pill{font-size:9px;padding:6px 10px}.lesson-head h1{font-size:21px}.lesson-head{padding:20px 16px}.lesson-head>.module-icon{display:none}.lesson-tabs{gap:17px}.lesson-tab{font-size:10px;gap:5px}.lesson-tab .icon{width:14px;height:14px}.reading{padding:23px 20px}.reading h2{font-size:18px}.lesson-aside{grid-template-columns:1fr}.lesson-aside .side-note{grid-column:auto}.signal-flow{gap:5px}.signal-node{padding:12px 5px}.signal-node b{font-size:8px}.signal-node small{font-size:7px}.signal-flow>.icon{width:10px}.resource-card{padding:18px;gap:12px}.resource-card .module-icon{width:34px;height:34px}.reference-grid{grid-template-columns:1fr}.glossary-grid{grid-template-columns:1fr}.progress-hero{padding:23px 18px;gap:18px}.progress-ring{width:80px;height:80px}.progress-ring b{font-size:21px}.progress-hero h2{font-size:16px}.progress-row{padding:13px 11px;gap:10px;flex-wrap:wrap}.progress-row-title{flex:1;min-width:150px}.progress-score{font-size:9px}.progress-row .checkbox-button{font-size:9px}.lab-grid{grid-template-columns:1fr}.lab-output{min-height:210px}.page-footer{margin:0 15px;gap:4px}.resource-dialog{padding:26px 20px}.quiz-question legend{font-size:12px}.answer-option{font-size:11px}.lesson-neighbors a{font-size:9px}.lesson-neighbors{gap:13px}.lab-reading{font-size:29px}.muted-note{font-size:9px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 @media print{.sidebar,.topbar,.page-footer,.lesson-tabs,.lesson-aside,.lesson-bottom,.lesson-neighbors,.back-link,.toast,.bookmark,.btn,.skip{display:none!important}.app-shell{margin:0}main{padding:0;max-width:none}.lesson-layout{display:block}.reading,.lesson-head{border:0;box-shadow:none}.reading{padding:0}body{background:white}.lesson-head{padding:0 0 20px}pre{white-space:pre-wrap;font-size:9px;color:#16233c;background:#f0f3f7}.code-toolbar button{display:none}.lesson-head h1{font-size:24px}}
+
+
+/* Diagramas de conexión y descargas mejoradas */
+.connection-map{margin:18px 0 22px;padding:18px;border:1px solid #dbe4f0;border-radius:18px;background:linear-gradient(145deg,#f8fbff,#f1f6ff)}
+.connection-map figcaption{margin-bottom:15px;color:#16233c;font-size:14px;font-weight:800}
+.connection-board{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center}
+.board-visual{position:relative;display:grid;place-content:center;min-height:130px;padding:22px;border:3px solid #087f8c;border-radius:20px 11px 18px 12px;background:#11a7b5;color:#fff;box-shadow:inset 0 0 0 5px rgba(255,255,255,.18)}
+.board-visual b{font-size:18px;letter-spacing:.08em}.board-visual small{text-align:center;font-weight:800}.board-usb{position:absolute;left:-13px;top:28px;width:28px;height:44px;border:3px solid #8091a5;border-radius:4px;background:#c9d3de}.board-pins{position:absolute;right:9px;top:9px;font-size:8px;letter-spacing:.08em}
+.connection-list{display:grid;gap:10px}.connection-line{display:grid;grid-template-columns:minmax(100px,auto) minmax(32px,1fr) minmax(150px,2fr);align-items:center;gap:8px}
+.component-chip,.pin-chip{display:block;padding:9px 11px;border-radius:10px;font-size:12px;font-weight:700}.component-chip{background:#fff;color:#1749d1;border:1px solid #cbd9f5}.pin-chip{background:#16233c;color:#fff}.wire-path{height:3px;background:linear-gradient(90deg,#ff8a00,#e22962);border-radius:99px}
+.connection-map>p{margin:14px 0 0;color:#5f6f85;font-size:11px}
+.resource-bundle{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:20px 0 28px;padding:24px 26px;border-radius:20px;background:linear-gradient(120deg,#112654,#1749d1);color:#fff;box-shadow:0 14px 34px rgba(23,73,209,.18)}
+.resource-bundle h2{margin:3px 0 7px;color:#fff}.resource-bundle p{margin:0;color:#dbe6ff}.resource-bundle .eyebrow{color:#a9c4ff}.resource-bundle .btn{flex:0 0 auto;background:#fff;color:#1749d1}
+
+@media(max-width:760px){
+  body{font-size:15px}
+  #global-search input{font-size:16px}
+  .school-label,.sidebar-label,.card-week,.eyebrow,.activity-number,.progress-score,.progress-row .checkbox-button,.lesson-neighbors a,.muted-note{font-size:12px}
+  .nav-item{min-height:44px;font-size:14px}
+  .btn,.filter-pill,.lesson-tab,.card-open,.bookmark,.icon-btn{min-height:44px}
+  .btn{font-size:13px}
+  .module-card p,.resource-card p,.wire-note,.connection-map>p{font-size:12px;line-height:1.55}
+  .quiz-question legend,.answer-option{font-size:13px}
+  .connection-board{grid-template-columns:1fr}
+  .board-visual{width:min(210px,100%);margin:auto}
+  .connection-line{grid-template-columns:1fr 24px 1.5fr}
+  .component-chip,.pin-chip{padding:8px;font-size:11px}
+  .resource-bundle{align-items:flex-start;flex-direction:column;padding:21px}
+  .resource-bundle .btn{width:100%}
+}
