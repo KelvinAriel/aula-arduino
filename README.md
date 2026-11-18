@@ -4,7 +4,7 @@ Sitio educativo interactivo para que estudiantes de Segundo Año de Bachillerato
 
 ## Sitio publicado
 
-https://aula-arduino-kelvin.kelvin2004lara.chatgpt.site/
+https://kelvinariel.github.io/aula-arduino/
 
 ## Contenido
 
