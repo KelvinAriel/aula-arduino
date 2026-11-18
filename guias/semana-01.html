@@ -1,0 +1,45 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 1 · Sistemas inteligentes con Arduino · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 1</span><h1>Sistemas inteligentes con Arduino</h1><p>Seguridad, iluminación y riego: tres formas de responder al entorno.</p><h2>¿Qué aprenderás?</h2><ul><li>Distinguir entradas, decisiones y salidas.</li><li>Relacionar los sensores con una necesidad cotidiana.</li><li>Comprobar cada subsistema con diferentes valores.</li></ul><h2>Del sensor a la respuesta</h2><p>Un sistema automatizado recibe información, la interpreta mediante un programa y activa una respuesta. El PIR detecta cambios de radiación infrarroja asociados al movimiento; el TMP36 entrega una señal relacionada con la temperatura; una LDR cambia su resistencia según la luz. Arduino conecta esas entradas con los actuadores.</p><h2>Una decisión se puede programar</h2><p>Una condición como temperatura &gt;= 30 compara una medición con un umbral. El programa debe definir qué sucede cuando la condición se cumple y cuando no. Antes de simular, escribe una tabla con las entradas y las salidas que esperas observar.</p><h2>Combinar sin confundir</h2><p>Prueba la detección de movimiento y el monitoreo térmico por separado. Al integrarlos, usa nombres de variables claros y evita asignar dos funciones al mismo pin. Para alternar colores sin detener la lectura del PIR, el ejemplo utiliza millis().</p><h2>Prácticas</h2><h3>Seguridad y monitoreo ambiental</h3><ol><li>Conecta PIR, TMP36, dos LEDs, RGB de cátodo común y buzzer según la tabla del ejemplo.</li><li>Prueba movimiento y ausencia de movimiento; después cambia la temperatura alrededor de 30 °C.</li><li>Observa que el RGB alterna rojo/naranja o verde/azul mientras la alarma sigue respondiendo.</li></ol><p><b>Resultado esperado:</b> El PIR controla la alarma y el TMP36 selecciona la secuencia de colores.</p><h3>Iluminación y riego automático</h3><ol><li>Dibuja las entradas y salidas de una lámpara que solo se encienda con oscuridad y presencia.</li><li>Representa la humedad del suelo mediante una entrada analógica y define cuándo debe solicitarse riego.</li><li>Usa un LED para representar la bomba durante el diseño; registra al menos cuatro escenarios.</li></ol><p><b>Resultado esperado:</b> Puedes justificar cada decisión con una condición, sin conectar una bomba directamente a Arduino.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>PIR OUT</td><td>D4</td></tr><tr><td>TMP36 OUT</td><td>A0</td></tr><tr><td>LED verde / rojo</td><td>D2 / D7, cada uno con 220 Ω</td></tr><tr><td>RGB R / G / B</td><td>D5 / D6 / D9, cada canal con 220 Ω</td></tr><tr><td>Buzzer pasivo</td><td>D8</td></tr><tr><td>Alimentación</td><td>5 V y GND común; RGB de cátodo común a GND</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>Sin movimiento</td><td>Verde encendido, alarma apagada</td></tr><tr><td>Con movimiento</td><td>Rojo encendido y buzzer</td></tr><tr><td>T &lt; 30 °C</td><td>Alternancia verde / azul</td></tr><tr><td>T ≥ 30 °C</td><td>Alternancia rojo / naranja</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> El ejemplo usa pines PWM válidos para los tres canales RGB. Si utilizas un RGB de ánodo común, debes adaptar conexiones y lógica.</p><h2>Código Arduino</h2><pre><code>// Aula Arduino - seguridad y monitoreo ambiental
+// RGB de catodo comun. Resistencias independientes por canal.
+const int pinPIR = 4, pinTMP36 = A0;
+const int ledVerde = 2, ledRojo = 7, buzzer = 8;
+const int rgbRojo = 5, rgbVerde = 6, rgbAzul = 9;
+unsigned long ultimoCambio = 0;
+bool fase = false;
+
+void setup() {
+  pinMode(pinPIR, INPUT);
+  pinMode(ledVerde, OUTPUT); pinMode(ledRojo, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(rgbRojo, OUTPUT); pinMode(rgbVerde, OUTPUT);
+  pinMode(rgbAzul, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool movimiento = digitalRead(pinPIR) == HIGH;
+  digitalWrite(ledRojo, movimiento ? HIGH : LOW);
+  digitalWrite(ledVerde, movimiento ? LOW : HIGH);
+  if (movimiento) tone(buzzer, 1000);
+  else noTone(buzzer);
+
+  float voltaje = analogRead(pinTMP36) * (5.0 / 1023.0);
+  float temperatura = (voltaje - 0.5) * 100.0;
+
+  // Alternar sin bloquear las lecturas del PIR.
+  unsigned long ahora = millis();
+  if (ahora - ultimoCambio &gt;= 500) {
+    ultimoCambio = ahora;
+    fase = !fase;
+    Serial.print(&quot;Temperatura: &quot;);
+    Serial.println(temperatura, 1);
+  }
+  if (temperatura &gt;= 30.0) {
+    analogWrite(rgbRojo, 255);
+    analogWrite(rgbVerde, fase ? 100 : 0);
+    analogWrite(rgbAzul, 0);
+  } else {
+    analogWrite(rgbRojo, 0);
+    analogWrite(rgbVerde, fase ? 255 : 0);
+    analogWrite(rgbAzul, fase ? 0 : 255);
+  }
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Qué elemento recibe información del entorno?</h3><ol type="A"><li>El sensor</li><li>El actuador</li><li>El cable USB</li></ol><h3>2. ¿Qué condición representa una temperatura alta desde 30 °C?</h3><ol type="A"><li>temperatura &gt; 30</li><li>temperatura &gt;= 30</li><li>temperatura &lt; 30</li></ol><h3>3. ¿Por qué probar por separado cada subsistema?</h3><ol type="A"><li>Para evitar usar variables</li><li>Para identificar con más facilidad dónde ocurre una falla</li><li>Para prescindir del programa</li></ol><h2>Respuestas explicadas</h2><p><b>1. El sensor.</b> El sensor convierte una condición física en una señal que el controlador puede interpretar.</p><p><b>2. temperatura &gt;= 30.</b> &gt;= incluye exactamente 30 °C y los valores superiores.</p><p><b>3. Para identificar con más facilidad dónde ocurre una falla.</b> Una prueba por módulos permite localizar errores antes de integrar todo el circuito.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

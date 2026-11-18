@@ -1,0 +1,55 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 20 · Mecanismos y barrera robótica · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 20</span><h1>Mecanismos y barrera robótica</h1><p>Relaciona el giro del servo con el movimiento de una palanca.</p><h2>¿Qué aprenderás?</h2><ul><li>Reconocer transmisión y transformación del movimiento.</li><li>Relacionar longitud de palanca y esfuerzo.</li><li>Comprobar el algoritmo de una barrera.</li></ul><h2>Del eje a la estructura</h2><p>Ejes, palancas, ruedas, poleas y engranajes transmiten o transforman movimiento. En una barrera, el brazo puede funcionar como una palanca unida al eje del servomotor.</p><h2>El mecanismo también importa</h2><p>Un brazo más largo recorre una distancia mayor en su extremo, pero una carga situada más lejos exige mayor par. El modelo digital del servo no garantiza que un brazo físico pueda moverse con cualquier longitud o peso.</p><h2>La regla de la barrera</h2><p>Con una distancia válida de 20 cm o menos se abre a 90°. Más lejos permanece a 0°. Si no llega una lectura válida, se cierra y señala error. La simulación representa el control; no reproduce todos los esfuerzos mecánicos.</p><h2>Prácticas</h2><h3>Barrera por proximidad</h3><ol><li>Dibuja la base, eje, brazo y dos posiciones de la barrera.</li><li>Arma el circuito con servo, HC-SR04, LEDs y buzzer.</li><li>Prueba 10, 20 y 40 cm y describe la respuesta ante error.</li></ol><p><b>Resultado esperado:</b> La barrera abre solo con objeto cercano y lectura válida.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>TRIG / ECHO</td><td>D9 / D10</td></tr><tr><td>Servo señal</td><td>D6</td></tr><tr><td>LED verde / rojo</td><td>D3 / D4, con 220 Ω</td></tr><tr><td>Buzzer</td><td>D8 y GND</td></tr><tr><td>Alimentación</td><td>5 V sensores; servo con fuente apropiada y GND común</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>10 cm</td><td>Abre a 90°</td></tr><tr><td>20 cm</td><td>Abre a 90°</td></tr><tr><td>40 cm</td><td>Cierra a 0°</td></tr><tr><td>Error</td><td>Cierra y emite tono de error</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> Prueba el recorrido mecánico sin carga antes de fijar una palanca a un servo real; evita posiciones que fuercen los topes.</p><h2>Código Arduino</h2><pre><code>#include &lt;Servo.h&gt;
+const int pinTrig = 9;
+const int pinEcho = 10;
+const int pinServo = 6;
+const int ledVerde = 3;
+const int ledRojo = 4;
+const int buzzer = 8;
+Servo barrera;
+float medirDistancia() {
+  digitalWrite(pinTrig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pinTrig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pinTrig, LOW);
+  unsigned long duracion = pulseIn(pinEcho, HIGH, 30000);
+  if (duracion == 0) return -1.0;
+  return duracion * 0.0343 / 2.0;
+}
+void cerrarBarrera() {
+  barrera.write(0);
+  digitalWrite(ledVerde, LOW);
+  digitalWrite(ledRojo, HIGH);
+}
+void abrirBarrera() {
+  barrera.write(90);
+  digitalWrite(ledVerde, HIGH);
+  digitalWrite(ledRojo, LOW);
+}
+void setup() {
+  pinMode(pinTrig, OUTPUT);
+  pinMode(pinEcho, INPUT);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  barrera.attach(pinServo);
+  cerrarBarrera();
+  Serial.begin(9600);
+}
+void loop() {
+  float distancia = medirDistancia();
+  if (distancia &lt; 0) {
+    cerrarBarrera();
+    tone(buzzer, 300);
+    Serial.println(&quot;ERROR DE LECTURA&quot;);
+  } else if (distancia &lt;= 20) {
+    abrirBarrera();
+    tone(buzzer, 1200, 120);
+    Serial.println(&quot;OBJETO DETECTADO - BARRERA ABIERTA&quot;);
+  } else {
+    cerrarBarrera();
+    noTone(buzzer);
+    Serial.println(&quot;BARRERA CERRADA&quot;);
+  }
+  delay(300);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Qué elemento puede transmitir el giro del servo al brazo?</h3><ol type="A"><li>Una palanca conectada al eje</li><li>Un sensor TMP36</li><li>Un archivo de texto</li></ol><h3>2. Según esta regla, a 20 cm la barrera…</h3><ol type="A"><li>Se abre</li><li>Permanece cerrada</li><li>Se desconecta</li></ol><h3>3. Con igual carga, al alejarla más del eje…</h3><ol type="A"><li>Se requiere mayor par</li><li>Desaparece el esfuerzo</li><li>Se mide más luz</li></ol><h2>Respuestas explicadas</h2><p><b>1. Una palanca conectada al eje.</b> La unión mecánica transmite el movimiento del eje.</p><p><b>2. Se abre.</b> El intervalo de apertura incluye 20 cm.</p><p><b>3. Se requiere mayor par.</b> El par depende de la fuerza y de la distancia al eje.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

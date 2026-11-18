@@ -1,0 +1,48 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 10 · Motor DC y ventilador automático · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 10</span><h1>Motor DC y ventilador automático</h1><p>Controla una carga con una etapa de potencia y PWM.</p><h2>¿Qué aprenderás?</h2><ul><li>Reconocer por qué un motor necesita una etapa de potencia.</li><li>Conectar tierras comunes y diodo de protección.</li><li>Elegir velocidad según temperatura.</li></ul><h2>Separar control y potencia</h2><p>Un pin de Arduino no debe alimentar directamente un motor. El pin controla un transistor o driver y una fuente adecuada entrega la corriente del motor. En esta práctica se usa un TIP120 con resistencia de base y un diodo en paralelo al motor.</p><h2>Conexión del motor</h2><p>Conecta el emisor del TIP120 a GND común, el colector al terminal negativo del motor y el positivo a la fuente del motor. El diodo se coloca con cátodo al positivo del motor y ánodo al colector. Verifica los terminales del transistor antes de montar.</p><h2>Tres niveles de ventilación</h2><p>El ejemplo usa motor apagado bajo 25 °C, PWM 150 entre 25 y 30 °C inclusive, y PWM 255 por encima de 30 °C. Es un control por niveles; el valor PWM no es una medición directa de revoluciones por minuto.</p><h2>Prácticas</h2><h3>Ventilador por temperatura</h3><ol><li>Arma primero la etapa TIP120, resistencia de 1 kΩ, diodo y motor con su fuente.</li><li>Conecta TMP36 y carga el ejemplo.</li><li>Prueba 20, 27 y 35 °C y compara temperatura con PWM.</li></ol><p><b>Resultado esperado:</b> El motor pasa por apagado, nivel medio y nivel alto.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>TMP36 OUT</td><td>A0; alimentación 5 V y GND</td></tr><tr><td>D5</td><td>A base TIP120 mediante 1 kΩ</td></tr><tr><td>TIP120 emisor / colector</td><td>GND común / negativo del motor</td></tr><tr><td>Motor positivo</td><td>Fuente del motor adecuada (9 V en el modelo del curso)</td></tr><tr><td>Diodo</td><td>Cátodo al positivo del motor; ánodo al colector</td></tr><tr><td>Tierras</td><td>GND de fuente, transistor y Arduino unidos</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>20 °C</td><td>PWM 0</td></tr><tr><td>27 °C</td><td>PWM 150</td></tr><tr><td>35 °C</td><td>PWM 255</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> Comprueba tensión y corriente nominales de la carga antes de usar hardware. Los valores del montaje simulado no garantizan compatibilidad con cualquier motor.</p><h2>Código Arduino</h2><pre><code>const int pinTMP36 = A0;
+const int pinMotor = 5;
+
+int lectura = 0;
+int pwmMotor = 0;
+float voltaje = 0.0;
+float temperatura = 0.0;
+
+void setup() {
+  pinMode(pinMotor, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Leer el sensor y convertir la lectura a grados Celsius.
+  lectura = analogRead(pinTMP36);
+  voltaje = lectura * (5.0 / 1023.0);
+  temperatura = (voltaje - 0.5) * 100.0;
+
+  // Seleccionar la velocidad según la temperatura.
+  if (temperatura &lt; 25.0) {
+    pwmMotor = 0;
+  } else if (temperatura &lt;= 30.0) {
+    pwmMotor = 150;
+  } else {
+    pwmMotor = 255;
+  }
+
+  // Aplicar el valor PWM al transistor que controla el motor.
+  analogWrite(pinMotor, pwmMotor);
+
+  // Mostrar información para comprobar el sistema.
+  Serial.print(&quot;Temperatura: &quot;);
+  Serial.print(temperatura, 1);
+  Serial.print(&quot; °C | Estado: &quot;);
+
+  if (pwmMotor == 0) {
+    Serial.print(&quot;apagado&quot;);
+  } else if (pwmMotor == 150) {
+    Serial.print(&quot;velocidad media&quot;);
+  } else {
+    Serial.print(&quot;velocidad alta&quot;);
+  }
+
+  Serial.print(&quot; | PWM: &quot;);
+  Serial.println(pwmMotor);
+  delay(500);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Por qué se usa un transistor o driver?</h3><ol type="A"><li>Para que el pin no alimente directamente la corriente del motor</li><li>Para evitar programar</li><li>Para medir la distancia</li></ol><h3>2. ¿Qué protege frente al transitorio inductivo del motor?</h3><ol type="A"><li>El sensor PIR</li><li>El diodo correctamente orientado</li><li>El nombre de la variable</li></ol><h3>3. ¿Qué hace el ejemplo a 27 °C?</h3><ol type="A"><li>Apaga el motor</li><li>Aplica PWM 150</li><li>Aplica PWM 255</li></ol><h2>Respuestas explicadas</h2><p><b>1. Para que el pin no alimente directamente la corriente del motor.</b> El pin entrega la señal de control y la etapa de potencia maneja la carga.</p><p><b>2. El diodo correctamente orientado.</b> El diodo proporciona un camino para la corriente inductiva al desconectar la carga.</p><p><b>3. Aplica PWM 150.</b> 27 °C pertenece al intervalo de 25 a 30 °C.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

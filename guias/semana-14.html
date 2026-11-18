@@ -1,0 +1,50 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 14 · Temperatura y ventilación coordinada · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 14</span><h1>Temperatura y ventilación coordinada</h1><p>Combina motor, compuerta y señalización por intervalos.</p><h2>¿Qué aprenderás?</h2><ul><li>Aplicar tres intervalos de temperatura.</li><li>Coordinar PWM y ángulo.</li><li>Comprobar límites y estados.</li></ul><h2>Una entrada, varias salidas</h2><p>La temperatura puede controlar simultáneamente ventilador, compuerta e indicadores. Define una tabla de decisiones antes de programar para que todas las salidas representen el mismo estado.</p><h2>Los límites de esta práctica</h2><p>Bajo 24 °C: motor apagado y compuerta a 0°. De 24 a 30 °C inclusive: PWM 150 y 45°. Por encima de 30 °C: PWM 255 y 90°. Estos intervalos difieren de la semana 10; se deben usar los de la práctica actual.</p><h2>Prueba y estabilidad</h2><p>Una temperatura cercana al umbral puede provocar cambios repetitivos. Registra esa posibilidad y diseña después una histéresis: diferentes límites para pasar a un estado y para regresar. El ejemplo base utiliza comparaciones directas.</p><h2>Prácticas</h2><h3>Ventilación con compuerta</h3><ol><li>Arma motor con etapa de potencia, TMP36, servo y LEDs.</li><li>Carga el programa y prueba 20, 27 y 35 °C.</li><li>Revisa valores cercanos a 24 y 30 °C y registra motor, ángulo e indicadores.</li></ol><p><b>Resultado esperado:</b> Las salidas siguen una misma tabla de estado.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>TMP36 OUT</td><td>A0</td></tr><tr><td>LED verde / rojo</td><td>D3 / D4, con resistencia</td></tr><tr><td>Motor mediante transistor</td><td>D5; ver etapa de semana 10</td></tr><tr><td>Servo señal</td><td>D9</td></tr><tr><td>Alimentación</td><td>Fuentes adecuadas y tierras comunes</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>20 °C</td><td>PWM 0; servo 0°; verde</td></tr><tr><td>27 °C</td><td>PWM 150; servo 45°</td></tr><tr><td>35 °C</td><td>PWM 255; servo 90°; rojo</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> El sensor y la referencia de voltaje tienen tolerancias. Al probar límites numéricos, observa la temperatura calculada en Serial.</p><h2>Código Arduino</h2><pre><code>#include &lt;Servo.h&gt;
+Servo compuerta;
+const int pinTMP36 = A0;
+const int ledVerde = 3;
+const int ledRojo = 4;
+const int pinMotor = 5;
+const int pinServo = 9;
+void setup() {
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
+  pinMode(pinMotor, OUTPUT);
+  compuerta.attach(pinServo);
+  compuerta.write(0);
+  Serial.begin(9600);
+}
+void loop() {
+  int lectura = analogRead(pinTMP36);
+  float voltaje = lectura * (5.0 / 1023.0);
+  float temperatura = (voltaje - 0.5) * 100.0;
+  int pwmMotor;
+  int anguloCompuerta;
+  if (temperatura &lt; 24.0) {
+    pwmMotor = 0;
+    anguloCompuerta = 0;
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledRojo, LOW);
+    Serial.print(&quot;NORMAL&quot;);
+  } else if (temperatura &lt;= 30.0) {
+    pwmMotor = 150;
+    anguloCompuerta = 45;
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledRojo, LOW);
+    Serial.print(&quot;VENTILACION MEDIA&quot;);
+  } else {
+    pwmMotor = 255;
+    anguloCompuerta = 90;
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledRojo, HIGH);
+    Serial.print(&quot;VENTILACION ALTA&quot;);
+  }
+  analogWrite(pinMotor, pwmMotor);
+  compuerta.write(anguloCompuerta);
+  Serial.print(&quot; | Temperatura: &quot;);
+  Serial.print(temperatura, 1);
+  Serial.print(&quot; °C | PWM: &quot;);
+  Serial.print(pwmMotor);
+  Serial.print(&quot; | Angulo: &quot;);
+  Serial.println(anguloCompuerta);
+  delay(500);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Cuál es la respuesta a 27 °C en esta semana?</h3><ol type="A"><li>Motor apagado y 0°</li><li>PWM 150 y 45°</li><li>PWM 255 y 90°</li></ol><h3>2. ¿Por qué documentar los límites?</h3><ol type="A"><li>Para que todas las salidas usen los mismos estados</li><li>Para reducir el número de cables a cero</li><li>Para omitir pruebas</li></ol><h3>3. ¿Qué puede reducir cambios repetidos cerca del umbral?</h3><ol type="A"><li>Una histéresis bien definida</li><li>Un nombre más largo</li><li>Invertir todos los LEDs</li></ol><h2>Respuestas explicadas</h2><p><b>1. PWM 150 y 45°.</b> 27 °C se encuentra dentro de la banda media de 24 a 30 °C.</p><p><b>2. Para que todas las salidas usen los mismos estados.</b> La tabla evita decisiones contradictorias entre motor, servo y LEDs.</p><p><b>3. Una histéresis bien definida.</b> La histéresis usa límites distintos para cambiar y regresar de estado.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

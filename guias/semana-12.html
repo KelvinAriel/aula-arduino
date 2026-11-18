@@ -1,0 +1,31 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 12 · Iluminación automática con PWM · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 12</span><h1>Iluminación automática con PWM</h1><p>Aumenta el brillo cuando disminuye la luz ambiental.</p><h2>¿Qué aprenderás?</h2><ul><li>Representar entrada, proceso y salida.</li><li>Invertir intervalos con map().</li><li>Comprobar el brillo en varios niveles.</li></ul><h2>Automatizar una respuesta</h2><p>Automatizar consiste en ejecutar reglas para responder a condiciones medidas. En este sistema, una LDR representa la iluminación ambiental y el LED representa una lámpara regulable.</p><h2>Relación inversa</h2><p>Con el divisor 5 V → LDR → A0 → 10 kΩ → GND, más luz produce lectura mayor. map(nivelLuz, 0, 1023, 255, 0) invierte el intervalo: una lectura baja solicita brillo alto. constrain() mantiene el valor dentro de 0–255.</p><h2>No todo es encendido o apagado</h2><p>El control por umbral elige dos estados. PWM permite niveles intermedios. En ambos casos necesitas comprobar las lecturas; la LDR no garantiza alcanzar exactamente 0 o 1023 en todos los montajes.</p><h2>Prácticas</h2><h3>Lámpara que se adapta</h3><ol><li>Construye el divisor de LDR de la semana 4 y conecta un LED a D9.</li><li>Carga el ejemplo y mueve progresivamente el control de luz.</li><li>Registra al menos cinco pares de lectura y PWM; explica la tendencia.</li></ol><p><b>Resultado esperado:</b> El brillo aumenta al disminuir la luz.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>LDR</td><td>5 V al nodo A0</td></tr><tr><td>Resistencia 10 kΩ</td><td>Nodo A0 a GND</td></tr><tr><td>LED</td><td>D9 con 220 Ω; cátodo a GND</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>Lectura próxima a 0</td><td>Brillo próximo a 255</td></tr><tr><td>Lectura intermedia</td><td>Brillo intermedio</td></tr><tr><td>Lectura próxima a 1023</td><td>Brillo próximo a 0</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> Si el LED aumenta con la luz, revisa primero la orientación del divisor y después los límites de map().</p><h2>Código Arduino</h2><pre><code>const int pinLDR = A0;
+const int pinLED = 9;
+int nivelLuz = 0;
+int brilloLED = 0;
+void setup() {
+  pinMode(pinLED, OUTPUT);
+  Serial.begin(9600);
+}
+void loop() {
+  // Leer el nivel de iluminación.
+  nivelLuz = analogRead(pinLDR);
+  // Convertir e invertir los intervalos.
+  brilloLED = map(nivelLuz, 0, 1023, 255, 0);
+  brilloLED = constrain(brilloLED, 0, 255);
+  // Aplicar el brillo mediante PWM.
+  analogWrite(pinLED, brilloLED);
+  // Mostrar datos para verificar.
+  Serial.print(&quot;LDR: &quot;);
+  Serial.print(nivelLuz);
+  Serial.print(&quot; | PWM: &quot;);
+  Serial.print(brilloLED);
+  Serial.print(&quot; | Estado: &quot;);
+  if (brilloLED &gt; 170) {
+    Serial.println(&quot;iluminacion alta&quot;);
+  } else if (brilloLED &gt; 80) {
+    Serial.println(&quot;iluminacion media&quot;);
+  } else {
+    Serial.println(&quot;iluminacion baja&quot;);
+  }
+  delay(300);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Qué relación necesita la lámpara automática?</h3><ol type="A"><li>Más luz ambiental, más brillo siempre</li><li>Menos luz ambiental, más brillo</li><li>El brillo no cambia</li></ol><h3>2. ¿Qué hace constrain(brillo, 0, 255)?</h3><ol type="A"><li>Limita el valor al intervalo permitido</li><li>Convierte a °C</li><li>Abre la puerta</li></ol><h3>3. ¿Qué diferencia principal tiene PWM respecto a un umbral binario?</h3><ol type="A"><li>Permite niveles intermedios de salida</li><li>Evita usar un sensor</li><li>Solo funciona con PIR</li></ol><h2>Respuestas explicadas</h2><p><b>1. Menos luz ambiental, más brillo.</b> La lámpara compensa la disminución de luz ambiental.</p><p><b>2. Limita el valor al intervalo permitido.</b> constrain() impide que el valor quede fuera del rango definido.</p><p><b>3. Permite niveles intermedios de salida.</b> PWM modifica el ciclo de trabajo y permite graduar la respuesta.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

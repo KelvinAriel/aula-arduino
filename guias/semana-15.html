@@ -1,0 +1,42 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 15 · Control de acceso: detectar y autorizar · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 15</span><h1>Control de acceso: detectar y autorizar</h1><p>Abre una puerta solo si coinciden dos condiciones.</p><h2>¿Qué aprenderás?</h2><ul><li>Separar presencia y autorización.</li><li>Aplicar el operador &amp;&amp;.</li><li>Probar todas las combinaciones de entradas.</li></ul><h2>Dos preguntas diferentes</h2><p>El PIR responde si su señal detecta movimiento; el pulsador representa una autorización. La puerta se abre únicamente si hay presencia y el botón está presionado. El prototipo no identifica personas.</p><h2>Combinar con AND</h2><p>La expresión presencia == HIGH &amp;&amp; autorizacion == LOW exige ambas condiciones. LOW corresponde al botón conectado a GND con INPUT_PULLUP. Cambiar &amp;&amp; por || modificaría la regla del acceso.</p><h2>Esperar, permitir o solicitar</h2><p>Sin presencia, el sistema espera. Con presencia sin autorización, mantiene la puerta cerrada y señaliza. Con ambas condiciones, abre a 90°. Una tabla de verdad ayuda a verificar los cuatro casos posibles.</p><h2>Prácticas</h2><h3>Puerta con autorización</h3><ol><li>Conecta los dos sensores de entrada y los actuadores de la tabla.</li><li>Carga el programa y ejecuta las cuatro combinaciones.</li><li>Explica por qué pulsar sin presencia no debe abrir según esta regla.</li></ol><p><b>Resultado esperado:</b> La puerta solo abre cuando presencia y autorización coinciden.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>PIR OUT / pulsador</td><td>D2 / D3 a GND con INPUT_PULLUP</td></tr><tr><td>LED verde / rojo</td><td>D4 / D5, con 220 Ω</td></tr><tr><td>Buzzer / servo señal</td><td>D8 / D9</td></tr><tr><td>Alimentación</td><td>5 V de sensores; fuente adecuada del servo y GND común</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>Sin presencia, sin botón</td><td>Cerrada; espera</td></tr><tr><td>Sin presencia, con botón</td><td>Cerrada; espera</td></tr><tr><td>Presencia, sin botón</td><td>Cerrada; pendiente</td></tr><tr><td>Presencia y botón</td><td>Abierta; permitido</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> El botón es una autorización simulada. Este proyecto no implementa credenciales ni seguridad de acceso real.</p><h2>Código Arduino</h2><pre><code>#include &lt;Servo.h&gt;
+Servo puerta;
+const int pinPIR = 2;
+const int pinBoton = 3;
+const int ledVerde = 4;
+const int ledRojo = 5;
+const int pinBuzzer = 8;
+const int pinServo = 9;
+void setup() {
+  pinMode(pinPIR, INPUT);
+  pinMode(pinBoton, INPUT_PULLUP);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
+  pinMode(pinBuzzer, OUTPUT);
+  puerta.attach(pinServo);
+  puerta.write(0);
+  Serial.begin(9600);
+}
+void loop() {
+  int presencia = digitalRead(pinPIR);
+  int autorizacion = digitalRead(pinBoton);
+  if (presencia == HIGH &amp;&amp; autorizacion == LOW) {
+    puerta.write(90);
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledRojo, LOW);
+    tone(pinBuzzer, 1500);
+    Serial.println(&quot;ACCESO PERMITIDO&quot;);
+  } else if (presencia == HIGH) {
+    puerta.write(0);
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledRojo, HIGH);
+    tone(pinBuzzer, 400);
+    Serial.println(&quot;ACCESO PENDIENTE&quot;);
+  } else {
+    puerta.write(0);
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledRojo, LOW);
+    noTone(pinBuzzer);
+    Serial.println(&quot;SISTEMA EN ESPERA&quot;);
+  }
+  delay(200);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Qué exige el operador &amp;&amp;?</h3><ol type="A"><li>Al menos una condición</li><li>Que se cumplan ambas condiciones</li><li>Que ninguna se cumpla</li></ol><h3>2. ¿El PIR identifica al estudiante autorizado?</h3><ol type="A"><li>Sí</li><li>No</li><li>Solo con Serial</li></ol><h3>3. ¿Qué pasa con botón pulsado pero sin presencia?</h3><ol type="A"><li>La puerta abre siempre</li><li>La puerta permanece cerrada</li><li>El motor cambia de color</li></ol><h2>Respuestas explicadas</h2><p><b>1. Que se cumplan ambas condiciones.</b> AND solo es verdadero cuando sus dos operandos son verdaderos.</p><p><b>2. No.</b> El PIR detecta cambios asociados al movimiento, no identidad.</p><p><b>3. La puerta permanece cerrada.</b> La regla de apertura exige también presencia.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

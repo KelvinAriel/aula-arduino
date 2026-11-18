@@ -1,0 +1,47 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 13 · Alarma armable con pulsador · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 13</span><h1>Alarma armable con pulsador</h1><p>Añade memoria de estado y controla cuándo vigilar.</p><h2>¿Qué aprenderás?</h2><ul><li>Distinguir desarmada, vigilancia y alerta.</li><li>Usar INPUT_PULLUP.</li><li>Cambiar estado con una pulsación.</li></ul><h2>Recordar un estado</h2><p>Una variable bool almacena si la alarma está armada. El movimiento solo dispara la alerta cuando esa variable es true. Esto diferencia la entrada del sensor del estado interno del sistema.</p><h2>Un botón activo en LOW</h2><p>Con INPUT_PULLUP, conecta el pulsador entre D3 y GND. El pin está HIGH sin pulsación y LOW cuando se presiona. No conectes ese botón directamente entre 5 V y GND.</p><h2>Detectar el cambio y el rebote</h2><p>Comparar el estado actual con el anterior permite actuar al comenzar la pulsación. El ejemplo añade una pausa sencilla, pero un botón real puede rebotar; una versión más robusta utiliza una ventana de estabilidad con millis().</p><h2>Prácticas</h2><h3>Activa y desactiva vigilancia</h3><ol><li>Arma PIR, pulsador, dos LEDs y buzzer.</li><li>Inicia desarmada; pulsa una vez y luego simula movimiento.</li><li>Mantén el botón presionado y observa si ocurre un solo cambio; vuelve a pulsar para desarmar.</li></ol><p><b>Resultado esperado:</b> Tres estados reconocibles: desarmada, armada sin movimiento y alerta.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>PIR OUT</td><td>D2</td></tr><tr><td>Pulsador</td><td>Entre D3 y GND (INPUT_PULLUP)</td></tr><tr><td>LED verde / rojo</td><td>D4 / D5, con 220 Ω cada uno</td></tr><tr><td>Buzzer</td><td>D8 y GND</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>Desarmada, con movimiento</td><td>Sin alarma</td></tr><tr><td>Armada, sin movimiento</td><td>Verde y silencio</td></tr><tr><td>Armada, con movimiento</td><td>Rojo y buzzer</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> El ejemplo es una introducción al cambio de estado. Si observas pulsaciones duplicadas en hardware, mejora el antirrebote antes de seguir.</p><h2>Código Arduino</h2><pre><code>const int pinPIR = 2;
+const int pinBoton = 3;
+const int ledVerde = 4;
+const int ledRojo = 5;
+const int pinBuzzer = 8;
+bool alarmaArmada = false;
+int estadoAnteriorBoton = HIGH;
+void setup() {
+  pinMode(pinPIR, INPUT);
+  pinMode(pinBoton, INPUT_PULLUP);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
+  pinMode(pinBuzzer, OUTPUT);
+  Serial.begin(9600);
+}
+void loop() {
+  int estadoBoton = digitalRead(pinBoton);
+  int movimiento = digitalRead(pinPIR);
+  // Cambiar el estado una sola vez al comenzar cada pulsación.
+  if (estadoBoton == LOW &amp;&amp; estadoAnteriorBoton == HIGH) {
+    if (alarmaArmada == true) {
+      alarmaArmada = false;
+    } else {
+      alarmaArmada = true;
+    }
+    delay(50);
+  }
+  estadoAnteriorBoton = estadoBoton;
+  // Seleccionar uno de los tres estados del sistema.
+  if (alarmaArmada == false) {
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledRojo, LOW);
+    noTone(pinBuzzer);
+    Serial.println(&quot;DESARMADA&quot;);
+  } else if (movimiento == HIGH) {
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledRojo, HIGH);
+    tone(pinBuzzer, 1000);
+    Serial.println(&quot;ALERTA: movimiento detectado&quot;);
+  } else {
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledRojo, LOW);
+    noTone(pinBuzzer);
+    Serial.println(&quot;ARMADA: vigilancia activa&quot;);
+  }
+  delay(100);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. Con INPUT_PULLUP, ¿qué se lee al pulsar un botón conectado a GND?</h3><ol type="A"><li>HIGH</li><li>LOW</li><li>255</li></ol><h3>2. ¿Qué variable representa si se está vigilando?</h3><ol type="A"><li>Una variable booleana de armado</li><li>La distancia del sensor</li><li>El brillo de pantalla</li></ol><h3>3. ¿Por qué comparar botón actual y anterior?</h3><ol type="A"><li>Para actuar al inicio de la pulsación</li><li>Para medir temperatura</li><li>Para evitar GND</li></ol><h2>Respuestas explicadas</h2><p><b>1. LOW.</b> La resistencia interna mantiene HIGH y la pulsación lleva la entrada a tierra.</p><p><b>2. Una variable booleana de armado.</b> El estado de armado se conserva entre iteraciones.</p><p><b>3. Para actuar al inicio de la pulsación.</b> Detectar la transición evita cambiar el estado repetidamente mientras se mantiene pulsado.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

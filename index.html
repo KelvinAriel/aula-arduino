@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1749d1">
+  <meta name="description" content="Aprende y repasa Arduino, sensores, automatización, robótica y diseño 3D. Guías, prácticas y autoevaluaciones para bachillerato.">
+  <title>Aula Arduino · Aprende, construye, experimenta</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script src="curriculum.js" defer></script>
+  <script src="codes.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Saltar al contenido</a>
+  <div class="mobile-shade" id="mobile-shade"></div>
+  <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+    <a href="#/inicio" class="brand" aria-label="Aula Arduino, inicio"><span class="brand-symbol">∞</span><span>Aula<span class="brand-bottom">Arduino<span class="brand-dot">.</span></span></span></a>
+    <div class="school-label">TU ESPACIO PARA APRENDER</div>
+    <nav id="main-nav"></nav>
+    <div class="sidebar-line"></div>
+    <div class="sidebar-label">EXPLORA POR ÁREA</div>
+    <nav id="area-nav" class="area-nav"></nav>
+    <a class="sidebar-help" href="https://www.tinkercad.com/learn/circuits" target="_blank" rel="noopener noreferrer"><span class="help-icon">?</span><span>¿Primera vez en Tinkercad?<small>Explora las guías oficiales <span aria-hidden="true">↗</span></small></span></a>
+    <div class="sidebar-footer"><span class="avatar">KA</span><span>Kelvin A. Martínez Lara<small>Informática Educativa · UES</small></span></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="icon-btn mobile-menu" id="menu-button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar"></button>
+      <div class="breadcrumb" id="breadcrumb">Mi espacio de aprendizaje</div>
+      <form class="searchbar" id="global-search" role="search"><span id="search-icon"></span><input aria-label="Buscar temas, componentes o prácticas" name="q" placeholder="Busca un tema, componente o práctica…" autocomplete="off"><kbd>/</kbd></form>
+      <a href="#/progreso" class="top-progress" aria-label="Ver mi progreso"><span class="tiny-dot"></span><span id="top-progress-label">Tu aprendizaje, a tu ritmo</span></a>
+    </header>
+    <main id="main" tabindex="-1"></main>
+    <footer class="page-footer"><span>Aula Arduino <b>·</b> Ciencias de la Computación</span><span>Material de estudio para Segundo Año de Bachillerato · 2026</span></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="resource-dialog" class="resource-dialog"><button class="dialog-close icon-btn" aria-label="Cerrar vista previa" id="dialog-close">✕</button><div id="dialog-content"></div></dialog>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 16 · Estacionamiento con avisos de proximidad · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 16</span><h1>Estacionamiento con avisos de proximidad</h1><p>Clasifica distancias y cambia la frecuencia de los avisos.</p><h2>¿Qué aprenderás?</h2><ul><li>Clasificar tres zonas de distancia.</li><li>Distinguir tono y repetición del aviso.</li><li>Tratar el error de lectura de forma explícita.</li></ul><h2>Distancia convertida en señal</h2><p>Más de 100 cm representa zona lejana, más de 30 y hasta 100 cm precaución, y 30 cm o menos proximidad alta. Un LED por estado permite reconocer la decisión.</p><h2>Comunicación sonora</h2><p>El tono es la frecuencia del sonido; la repetición es cada cuánto se oye. El ejemplo utiliza avisos más rápidos al acercarse. Estos sonidos comunican categorías; no miden por sí mismos la velocidad de un vehículo.</p><h2>Distinguir error de distancia</h2><p>Si no llega un eco, el código adaptado apaga los indicadores de distancia y presenta un tono de error. No asigna al fallo una distancia artificial que pueda confundirse con una zona libre.</p><h2>Prácticas</h2><h3>Asistente de estacionamiento</h3><ol><li>Arma el circuito y observa las zonas en Serial.</li><li>Prueba 150, 60 y 20 cm; compara color y ritmo del sonido.</li><li>Comprueba el tratamiento de una medición inválida.</li></ol><p><b>Resultado esperado:</b> Tres zonas claramente diferenciadas y un estado de error independiente.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>TRIG / ECHO</td><td>D9 / D10</td></tr><tr><td>HC-SR04 alimentación</td><td>5 V y GND</td></tr><tr><td>LED verde / amarillo / rojo</td><td>D4 / D5 / D6, con 220 Ω cada uno</td></tr><tr><td>Buzzer</td><td>D8 y GND</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>150 cm</td><td>Verde; sin aviso</td></tr><tr><td>60 cm</td><td>Amarillo; aviso más espaciado</td></tr><tr><td>20 cm</td><td>Rojo; aviso más rápido</td></tr><tr><td>Sin eco</td><td>LEDs apagados y error</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> El ejemplo utiliza pausas para enseñar el ritmo de avisos. Si necesitas ejecutar otras tareas en paralelo, reemplaza esas pausas por control con millis().</p><h2>Código Arduino</h2><pre><code>const int pinTrig = 9;
+const int pinEcho = 10;
+const int ledVerde = 4;
+const int ledAmarillo = 5;
+const int ledRojo = 6;
+const int buzzer = 8;
+void activarLuces(int verde, int amarillo, int rojo);
+void setup() {
+  pinMode(pinTrig, OUTPUT);
+  pinMode(pinEcho, INPUT);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledAmarillo, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  Serial.begin(9600);
+}
+void loop() {
+  digitalWrite(pinTrig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pinTrig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pinTrig, LOW);
+  long duracion = pulseIn(pinEcho, HIGH, 30000);
+  float distancia;
+  if (duracion == 0) {
+    activarLuces(LOW, LOW, LOW);
+    tone(buzzer, 300);
+    Serial.println(&quot;ERROR: sin eco valido&quot;);
+    delay(300);
+    return;
+  }
+  distancia = duracion * 0.0343 / 2.0;
+  if (distancia &lt;= 30.0) {
+    activarLuces(LOW, LOW, HIGH);
+    tone(buzzer, 1200);
+    Serial.print(&quot;PELIGRO&quot;);
+    delay(150);
+    noTone(buzzer);
+    delay(150);
+  } else if (distancia &lt;= 100.0) {
+    activarLuces(LOW, HIGH, LOW);
+    tone(buzzer, 700);
+    Serial.print(&quot;PRECAUCION&quot;);
+    delay(100);
+    noTone(buzzer);
+    delay(500);
+  } else {
+    activarLuces(HIGH, LOW, LOW);
+    noTone(buzzer);
+    Serial.print(&quot;ZONA SEGURA&quot;);
+    delay(300);
+  }
+  Serial.print(&quot; | Distancia: &quot;);
+  Serial.print(distancia, 1);
+  Serial.println(&quot; cm&quot;);
+}
+void activarLuces(int verde, int amarillo, int rojo) {
+  digitalWrite(ledVerde, verde);
+  digitalWrite(ledAmarillo, amarillo);
+  digitalWrite(ledRojo, rojo);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Qué zona corresponde a 60 cm?</h3><ol type="A"><li>Lejana</li><li>Precaución</li><li>Lectura inválida</li></ol><h3>2. ¿Qué cambia al acercarse el objeto?</h3><ol type="A"><li>El aviso se repite más rápido</li><li>El sensor se convierte en PIR</li><li>El programa deja de medir para siempre</li></ol><h3>3. ¿Qué significa que no llegó eco antes del tiempo límite?</h3><ol type="A"><li>Camino libre confirmado</li><li>No hay una distancia válida</li><li>Objeto a exactamente 999 cm</li></ol><h2>Respuestas explicadas</h2><p><b>1. Precaución.</b> 60 se encuentra por encima de 30 y hasta 100 cm.</p><p><b>2. El aviso se repite más rápido.</b> El ritmo sonoro permite comunicar mayor proximidad.</p><p><b>3. No hay una distancia válida.</b> Un tiempo de espera agotado debe tratarse como error de medición.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

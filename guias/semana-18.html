@@ -1,0 +1,87 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 18 · Algoritmos para un contenedor inteligente · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 18</span><h1>Algoritmos para un contenedor inteligente</h1><p>Diseña reglas, prioridades y una respuesta segura ante fallos.</p><h2>¿Qué aprenderás?</h2><ul><li>Traducir requisitos a condiciones.</li><li>Dar prioridad a lleno y lectura inválida.</li><li>Preparar pruebas antes de construir.</li></ul><h2>Primero el problema y las reglas</h2><p>El contenedor detecta presencia, estima espacio disponible y mueve una tapa simulada. Un algoritmo define el orden de lectura y las decisiones antes de escribir instrucciones específicas de Arduino.</p><h2>La distancia representa espacio libre</h2><p>Con el sensor orientado hacia el contenido, distancia mayor de 25 cm representa disponible; mayor de 10 y hasta 25 cm, nivel medio; 10 cm o menos, lleno. Una menor distancia significa que el contenido está más cerca del sensor.</p><h2>Prioridades del sistema</h2><p>Con lectura inválida la tapa permanece cerrada y se señala error. Con estado lleno tampoco abre. Solo abre si hay presencia, lectura válida y espacio. Los valores son una simplificación didáctica, no una medición calibrada de porcentaje de llenado.</p><h2>Prácticas</h2><h3>Diseña y construye el contenedor</h3><ol><li>Escribe el pseudocódigo y predice seis escenarios, incluido error.</li><li>Conecta los módulos y prueba primero el sensor de distancia.</li><li>Carga el programa y verifica las prioridades del algoritmo.</li></ol><p><b>Resultado esperado:</b> La tapa abre con presencia y espacio; permanece cerrada si está lleno o falla la medición.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>PIR / servo señal</td><td>D2 / D6</td></tr><tr><td>TRIG / ECHO</td><td>D9 / D10</td></tr><tr><td>LED verde / amarillo / rojo</td><td>D3 / D4 / D5, con 220 Ω</td></tr><tr><td>Buzzer</td><td>D8 y GND</td></tr><tr><td>Alimentación</td><td>5 V de sensores; alimentación apropiada del servo y GND común</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>40 cm con presencia</td><td>Verde; tapa abierta</td></tr><tr><td>20 cm con presencia</td><td>Amarillo; tapa abierta</td></tr><tr><td>8 cm con presencia</td><td>Rojo, alarma; tapa cerrada</td></tr><tr><td>Sin presencia</td><td>Tapa cerrada</td></tr><tr><td>Sin lectura válida</td><td>Tapa cerrada; error</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> Un diagrama o pseudocódigo debe mostrar primero los casos prioritarios. Así se evita abrir la tapa antes de comprobar el estado de llenado.</p><h2>Código Arduino</h2><pre><code>#include &lt;Servo.h&gt;
+const int pinPir = 2;
+const int ledVerde = 3;
+const int ledAmarillo = 4;
+const int ledRojo = 5;
+const int pinServo = 6;
+const int pinBuzzer = 8;
+const int pinTrig = 9;
+const int pinEcho = 10;
+Servo tapa;
+float medirDistancia();
+void mostrarNivel(int verde, int amarillo, int rojo);
+void setup() {
+  pinMode(pinPir, INPUT);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledAmarillo, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
+  pinMode(pinBuzzer, OUTPUT);
+  pinMode(pinTrig, OUTPUT);
+  pinMode(pinEcho, INPUT);
+  tapa.attach(pinServo);
+  tapa.write(0);
+  Serial.begin(9600);
+}
+void loop() {
+  float distancia = medirDistancia();
+  int presencia = digitalRead(pinPir);
+  bool lecturaValida = distancia &gt;= 0.0;
+  bool lleno = false;
+  const char* nivel = &quot;ERROR&quot;;
+  if (!lecturaValida) {
+    mostrarNivel(LOW, LOW, LOW);
+    tone(pinBuzzer, 300);
+    tapa.write(0);
+    Serial.print(&quot;SIN LECTURA VALIDA&quot;);
+  } else {
+    if (distancia &lt;= 10.0) {
+      lleno = true;
+      nivel = &quot;LLENO&quot;;
+      mostrarNivel(LOW, LOW, HIGH);
+      tone(pinBuzzer, 1000);
+    } else if (distancia &lt;= 25.0) {
+      nivel = &quot;MEDIO&quot;;
+      mostrarNivel(LOW, HIGH, LOW);
+      noTone(pinBuzzer);
+    } else {
+      nivel = &quot;DISPONIBLE&quot;;
+      mostrarNivel(HIGH, LOW, LOW);
+      noTone(pinBuzzer);
+    }
+    if (presencia == HIGH &amp;&amp; !lleno) {
+      tapa.write(90);
+    } else {
+      tapa.write(0);
+    }
+    Serial.print(&quot;Distancia: &quot;);
+    Serial.print(distancia, 1);
+    Serial.print(&quot; cm | Nivel: &quot;);
+    Serial.print(nivel);
+  }
+  Serial.print(&quot; | Presencia: &quot;);
+  Serial.print(presencia);
+  Serial.print(&quot; | Tapa: &quot;);
+  if (lecturaValida &amp;&amp; presencia == HIGH &amp;&amp; !lleno) {
+    Serial.println(&quot;ABIERTA&quot;);
+  } else {
+    Serial.println(&quot;CERRADA&quot;);
+  }
+  delay(300);
+}
+float medirDistancia() {
+  digitalWrite(pinTrig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pinTrig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pinTrig, LOW);
+  unsigned long duracion = pulseIn(pinEcho, HIGH, 30000);
+  if (duracion == 0) {
+    return -1.0;
+  }
+  return duracion * 0.0343 / 2.0;
+}
+void mostrarNivel(int verde, int amarillo, int rojo) {
+  digitalWrite(ledVerde, verde);
+  digitalWrite(ledAmarillo, amarillo);
+  digitalWrite(ledRojo, rojo);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Qué representa una distancia menor en este montaje?</h3><ol type="A"><li>Más espacio libre</li><li>Contenido más cerca del sensor</li><li>Menos temperatura</li></ol><h3>2. Con 8 cm y presencia, ¿qué debe ocurrir?</h3><ol type="A"><li>Abrir siempre</li><li>Mantener cerrada la tapa y avisar lleno</li><li>Apagar Arduino</li></ol><h3>3. ¿Qué conviene definir antes de programar?</h3><ol type="A"><li>Requisitos, estados y pruebas</li><li>Solo el color de la carcasa</li><li>La nota final</li></ol><h2>Respuestas explicadas</h2><p><b>1. Contenido más cerca del sensor.</b> El sensor mira hacia el contenido; al llenarse disminuye el espacio medido.</p><p><b>2. Mantener cerrada la tapa y avisar lleno.</b> El estado lleno tiene prioridad sobre la presencia.</p><p><b>3. Requisitos, estados y pruebas.</b> Esas definiciones permiten comprobar si el código cumple el problema.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

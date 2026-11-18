@@ -1,0 +1,50 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 19 · Robótica: percibir, decidir y actuar · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 19</span><h1>Robótica: percibir, decidir y actuar</h1><p>Reconoce los subsistemas y construye un indicador de proximidad.</p><h2>¿Qué aprenderás?</h2><ul><li>Reconocer estructura, energía, percepción, control y acción.</li><li>Relacionar una medición con una posición.</li><li>Distinguir un prototipo didáctico de un robot completo.</li></ul><h2>Un robot es un sistema</h2><p>Un sistema robótico coordina estructura, energía, sensores, controlador y actuadores para una tarea. Arduino puede ser el controlador, pero la placa por sí sola no constituye todo el robot.</p><h2>Percibir y clasificar</h2><p>El HC-SR04 aporta una medición que el programa clasifica en zona lejana, media o cercana. El LED comunica esa decisión y un servo representa una respuesta mecánica.</p><h2>Una posición por zona</h2><p>El prototipo utiliza 0° para más de 100 cm, 90° para más de 30 y hasta 100 cm, y 180° para 30 cm o menos. Ante error mantiene una posición de referencia de 90° y apaga los LEDs. Es una decisión para este indicador, no una regla universal de seguridad.</p><h2>Prácticas</h2><h3>Indicador robótico de proximidad</h3><ol><li>Identifica los cinco subsistemas en un dibujo.</li><li>Arma sensor, servo y LEDs con la tabla.</li><li>Prueba las tres zonas y explica cómo cambia la acción a partir de la percepción.</li></ol><p><b>Resultado esperado:</b> Una simulación que comunica distancia mediante color y ángulo.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>TRIG / ECHO</td><td>D9 / D10</td></tr><tr><td>Servo señal</td><td>D6</td></tr><tr><td>LED verde / amarillo / rojo</td><td>D3 / D4 / D5, con 220 Ω</td></tr><tr><td>Alimentación</td><td>5 V sensores; alimentación apropiada del servo y tierra común</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>150 cm</td><td>Verde; 0°</td></tr><tr><td>60 cm</td><td>Amarillo; 90°</td></tr><tr><td>20 cm</td><td>Rojo; 180°</td></tr><tr><td>Error</td><td>LEDs apagados; 90°</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> El servo representa una acción; para mover una estructura real debes comprobar carga, recorrido, montaje y límites mecánicos.</p><h2>Código Arduino</h2><pre><code>#include &lt;Servo.h&gt;
+const int pinTrig = 9;
+const int pinEcho = 10;
+const int ledVerde = 3;
+const int ledAmarillo = 4;
+const int ledRojo = 5;
+const int pinServo = 6;
+Servo indicador;
+float medirDistancia() {
+  digitalWrite(pinTrig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pinTrig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pinTrig, LOW);
+  unsigned long duracion = pulseIn(pinEcho, HIGH, 30000);
+  if (duracion == 0) return -1.0;
+  return duracion * 0.0343 / 2.0;
+}
+void mostrarEstado(int verde, int amarillo, int rojo, int angulo) {
+  digitalWrite(ledVerde, verde);
+  digitalWrite(ledAmarillo, amarillo);
+  digitalWrite(ledRojo, rojo);
+  indicador.write(angulo);
+}
+void setup() {
+  pinMode(pinTrig, OUTPUT);
+  pinMode(pinEcho, INPUT);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledAmarillo, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
+  indicador.attach(pinServo);
+  Serial.begin(9600);
+}
+void loop() {
+  float distancia = medirDistancia();
+  if (distancia &lt; 0) {
+    mostrarEstado(LOW, LOW, LOW, 90);
+    Serial.println(&quot;Lectura no valida&quot;);
+  } else if (distancia &lt;= 30) {
+    mostrarEstado(LOW, LOW, HIGH, 180);
+    Serial.println(&quot;Zona cercana&quot;);
+  } else if (distancia &lt;= 100) {
+    mostrarEstado(LOW, HIGH, LOW, 90);
+    Serial.println(&quot;Zona media&quot;);
+  } else {
+    mostrarEstado(HIGH, LOW, LOW, 0);
+    Serial.println(&quot;Zona lejana&quot;);
+  }
+  delay(300);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿Cuál es el controlador de este prototipo?</h3><ol type="A"><li>Arduino UNO</li><li>La resistencia del LED</li><li>La base de cartón</li></ol><h3>2. ¿Qué hace el servo a 60 cm?</h3><ol type="A"><li>0°</li><li>90°</li><li>180°</li></ol><h3>3. ¿Cuál secuencia describe el funcionamiento?</h3><ol type="A"><li>Actuar, olvidar, borrar</li><li>Percibir, decidir, actuar</li><li>Imprimir, cortar, pintar</li></ol><h2>Respuestas explicadas</h2><p><b>1. Arduino UNO.</b> Arduino ejecuta las reglas y coordina las salidas.</p><p><b>2. 90°.</b> 60 cm pertenece a la zona media.</p><p><b>3. Percibir, decidir, actuar.</b> Los sensores perciben, el controlador decide y los actuadores responden.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>

@@ -1,0 +1,55 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Semana 17 · Proyecto: aula inteligente · Aula Arduino</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:0 25px;color:#243650;line-height:1.85;font-size:14px}h1{font-size:30px;line-height:1.3;color:#214ab1}h2{font-size:20px;margin-top:32px}h3{font-size:16px}p,li{color:#4e627b}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;text-align:left;border:1px solid #dce4f0}th{background:#eff4fc}pre{background:#f3f6fa;white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;border-radius:10px;font-size:12px;line-height:1.7}a{color:#2452db}.eyebrow{font-size:11px;letter-spacing:1px;color:#7c8da7}.print-button{border:0;background:#2452db;color:white;padding:10px 16px;border-radius:7px;cursor:pointer}h2,h3{break-after:avoid}tr,li{break-inside:avoid}@media print{body{margin:0;padding:0;font-size:11px}.print-button{display:none}pre{font-size:9px}h1{font-size:24px}h2{font-size:17px}@page{margin:18mm}}</style></head><body><button class="print-button" onclick="window.print()">Imprimir o guardar como PDF</button><div class="dialog-guide"><span class="eyebrow">AULA ARDUINO · GUÍA DE ESTUDIO · SEMANA 17</span><h1>Proyecto: aula inteligente</h1><p>Iluminación, ventilación y puerta trabajando juntas.</p><h2>¿Qué aprenderás?</h2><ul><li>Dividir un proyecto en módulos.</li><li>Integrar tres entradas sin conflictos de pines.</li><li>Verificar escenarios combinados.</li></ul><h2>Divide antes de integrar</h2><p>El aula inteligente contiene iluminación por LDR, ventilación por TMP36 y puerta por PIR. Cada módulo debe tener una entrada, una regla y una salida identificables. Escribe una prueba para cada uno antes de unirlos.</p><h2>Pines y responsabilidades</h2><p>A0 lee luz, A1 temperatura y D2 movimiento. D3 controla brillo, D5 motor y D9 el servo. En este ejemplo no se usa tone(), por lo que D3 se mantiene disponible para PWM; añadir funciones puede cambiar la disponibilidad de temporizadores.</p><h2>Leer, decidir y actuar</h2><p>loop() procesa los tres módulos en cada iteración y muestra datos por Serial. El ejemplo tiene una pausa breve de 300 ms. Si el proyecto necesita respuesta más rápida, evalúa la frecuencia de lectura y utiliza temporización sin bloqueo.</p><h2>Prácticas</h2><h3>Construye tu aula inteligente</h3><ol><li>Prueba cada módulo aislado usando las semanas anteriores.</li><li>Integra las conexiones de esta guía y carga el programa.</li><li>Combina oscuridad, calor y presencia; después cambia una entrada a la vez.</li></ol><p><b>Resultado esperado:</b> Cada salida responde a su sensor sin alterar indebidamente a las demás.</p><h2>Conexiones del ejemplo</h2><div class="table-wrap"><table><thead><tr><th scope="col">Componente</th><th scope="col">Conexión</th></tr></thead><tbody><tr><td>LDR, nodo divisor</td><td>A0; LDR a 5 V y 10 kΩ a GND</td></tr><tr><td>TMP36 OUT / PIR OUT</td><td>A1 / D2</td></tr><tr><td>LED de iluminación</td><td>D3 con 220 Ω</td></tr><tr><td>Motor, control al transistor</td><td>D5; etapa de potencia de semana 10</td></tr><tr><td>Servo señal</td><td>D9</td></tr><tr><td>Alimentación</td><td>Fuentes apropiadas y GND común</td></tr></tbody></table></div><h2>Tabla de pruebas</h2><div class="table-wrap"><table><thead><tr><th scope="col">Condición</th><th scope="col">Respuesta esperada</th></tr></thead><tbody><tr><td>Oscuridad, 20 °C, sin presencia</td><td>Brillo alto; motor parado; puerta cerrada</td></tr><tr><td>Luz, 35 °C, presencia</td><td>Brillo bajo; motor alto; puerta abierta</td></tr><tr><td>27 °C</td><td>PWM motor 150</td></tr></tbody></table></div><p><b>Ten en cuenta:</b> Si agregas buzzer, revisa los temporizadores antes de usar tone(): en UNO R3 puede interferir con PWM en D3 y D11.</p><h2>Código Arduino</h2><pre><code>#include &lt;Servo.h&gt;
+const int pinLdr = A0;
+const int pinTmp = A1;
+const int pinPir = 2;
+const int pinLed = 3;
+const int pinMotor = 5;
+const int pinServo = 9;
+Servo puerta;
+void setup() {
+  pinMode(pinPir, INPUT);
+  pinMode(pinLed, OUTPUT);
+  pinMode(pinMotor, OUTPUT);
+  puerta.attach(pinServo);
+  puerta.write(0);
+  Serial.begin(9600);
+}
+void loop() {
+  // Subsistema de iluminación
+  int luz = analogRead(pinLdr);
+  int brilloLed = map(luz, 0, 1023, 255, 0);
+  brilloLed = constrain(brilloLed, 0, 255);
+  analogWrite(pinLed, brilloLed);
+  // Subsistema de ventilación
+  int lecturaTmp = analogRead(pinTmp);
+  float voltaje = lecturaTmp * (5.0 / 1023.0);
+  float temperatura = (voltaje - 0.5) * 100.0;
+  int velocidadMotor;
+  if (temperatura &lt; 25.0) {
+    velocidadMotor = 0;
+  } else if (temperatura &lt;= 30.0) {
+    velocidadMotor = 150;
+  } else {
+    velocidadMotor = 255;
+  }
+  analogWrite(pinMotor, velocidadMotor);
+  // Subsistema de acceso
+  int presencia = digitalRead(pinPir);
+  if (presencia == HIGH) {
+    puerta.write(90);
+  } else {
+    puerta.write(0);
+  }
+  // Información para comprobar y depurar
+  Serial.print(&quot;Luz: &quot;);
+  Serial.print(luz);
+  Serial.print(&quot; | Brillo: &quot;);
+  Serial.print(brilloLed);
+  Serial.print(&quot; | Temperatura: &quot;);
+  Serial.print(temperatura, 1);
+  Serial.print(&quot; C | Motor: &quot;);
+  Serial.print(velocidadMotor);
+  Serial.print(&quot; | Presencia: &quot;);
+  Serial.println(presencia);
+  delay(300);
+}</code></pre><h2>Preguntas de repaso</h2><h3>1. ¿A qué pin se conecta el TMP36 en esta semana?</h3><ol type="A"><li>A0</li><li>A1</li><li>D9</li></ol><h3>2. ¿Qué significa integrar por módulos?</h3><ol type="A"><li>Conectar todo sin probar</li><li>Comprobar cada función y después coordinarla con las demás</li><li>Usar un solo cable</li></ol><h3>3. ¿Por qué revisar temporizadores al añadir bibliotecas?</h3><ol type="A"><li>Pueden compartir recursos usados por salidas PWM</li><li>Cambian el color físico de la placa</li><li>Aumentan el tamaño de los sensores</li></ol><h2>Respuestas explicadas</h2><p><b>1. A1.</b> A0 se reserva para la LDR y A1 para la temperatura.</p><p><b>2. Comprobar cada función y después coordinarla con las demás.</b> Las pruebas individuales simplifican la depuración del conjunto.</p><p><b>3. Pueden compartir recursos usados por salidas PWM.</b> Algunas funciones y bibliotecas utilizan los mismos temporizadores internos.</p><hr><p>Material adaptado para Segundo Año de Bachillerato · Kelvin Ariel Martínez Lara · 2026. Para programas y conexiones, revisa la guía de esta semana; la simulación y las pruebas físicas se realizan con las herramientas correspondientes.</p><h3>Fuentes de consulta</h3><ul><li><a href="https://docs.arduino.cc/hardware/uno-rev3/">Arduino UNO R3</a></li><li><a href="https://support.arduino.cc/hc/en-us/articles/9350537961500-Use-PWM-output-with-Arduino">PWM en Arduino</a></li><li><a href="https://github.com/arduino-libraries/Servo/blob/master/docs/readme.md">Biblioteca Servo</a></li><li><a href="https://www.analog.com/en/products/tmp36.html">Sensor TMP36</a></li><li><a href="https://www.tinkercad.com/learn/circuits">Tinkercad Circuits</a></li><li><a href="https://www.tinkercad.com/learn/designs">Tinkercad 3D</a></li></ul></div></body></html>
